@@ -1,0 +1,658 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE Pulse - Smart Study Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        success: '#22C55E',
+                        warning: '#EF4444',
+                        info: '#8B5CF6'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .neumorphic {
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8);
+        }
+        .dark .neumorphic {
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.05);
+        }
+        .gradient-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+        }
+        .dark .gradient-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
+        }
+    </style>
+</head>
+<body class="font-inter bg-slate-50 dark:bg-gray-900 transition-colors duration-300" data-mock="true">
+    
+    <!-- @COMPONENT: NavigationBar [mobile bottom nav and desktop sidebar] -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 lg:hidden" data-mock="true">
+        <div class="grid grid-cols-5 h-16">
+            <button class="flex flex-col items-center justify-center space-y-1 text-primary border-t-2 border-primary" data-event="click:navigateHome" data-implementation="Should switch to dashboard view">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs font-medium">Home</span>
+            </button>
+            <button class="flex flex-col items-center justify-center space-y-1 text-gray-500 dark:text-gray-400" data-event="click:navigateDailyLog" data-implementation="Should switch to daily log view">
+                <i class="fas fa-plus-circle text-lg"></i>
+                <span class="text-xs">Log</span>
+            </button>
+            <button class="flex flex-col items-center justify-center space-y-1 text-gray-500 dark:text-gray-400" data-event="click:navigateProgress" data-implementation="Should switch to analytics view">
+                <i class="fas fa-chart-line text-lg"></i>
+                <span class="text-xs">Progress</span>
+            </button>
+            <button class="flex flex-col items-center justify-center space-y-1 text-gray-500 dark:text-gray-400" data-event="click:navigateSyllabus" data-implementation="Should switch to syllabus view">
+                <i class="fas fa-book text-lg"></i>
+                <span class="text-xs">Syllabus</span>
+            </button>
+            <button class="flex flex-col items-center justify-center space-y-1 text-gray-500 dark:text-gray-400" data-event="click:navigateSettings" data-implementation="Should switch to settings view">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-xs">Settings</span>
+            </button>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: NavigationBar -->
+
+    <!-- @COMPONENT: DesktopSidebar [hidden on mobile, shown on desktop] -->
+    <aside class="hidden lg:flex lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-64 lg:flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40" data-mock="true">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h1 class="text-2xl font-bold text-primary">JEE Pulse</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Smart Study Tracker</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary/10 text-primary font-medium" data-event="click:navigateHome">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#daily-log" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:navigateDailyLog">
+                <i class="fas fa-plus-circle"></i>
+                <span>Daily Log</span>
+            </a>
+            <a href="#progress" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:navigateProgress">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#syllabus" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:navigateSyllabus">
+                <i class="fas fa-book"></i>
+                <span>Syllabus</span>
+            </a>
+            <a href="#settings" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:navigateSettings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </aside>
+    <!-- @END_COMPONENT: DesktopSidebar -->
+
+    <!-- @COMPONENT: MainContent [responsive main content area] -->
+    <main class="lg:ml-64 pb-20 lg:pb-6" data-mock="true">
+        
+        <!-- @COMPONENT: Header [mobile header with theme toggle] -->
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 lg:px-6 lg:py-6" data-mock="true">
+            <div class="flex items-center justify-between">
+                <div class="lg:hidden">
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Today, <span data-bind="currentDate">March 15, 2024</span></p>
+                </div>
+                <div class="hidden lg:block">
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Good morning, <span data-bind="user.name">Alex</span>! 👋</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Let's make today productive</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-event="click:toggleTheme" data-implementation="Should toggle between light and dark theme">
+                        <i class="fas fa-moon text-lg"></i>
+                    </button>
+                    <button class="p-2 rounded-lg bg-primary/10 text-primary" data-event="click:showNotifications" data-implementation="Should show notification panel">
+                        <i class="fas fa-bell text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: Header -->
+
+        <!-- @COMPONENT: DashboardView [main dashboard with stats cards] -->
+        <div id="dashboard-view" class="p-4 lg:p-6 space-y-6 animate-fade-in" data-mock="true">
+            
+            <!-- @COMPONENT: QuickStats [top row of key metrics] -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" data-mock="true">
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-4 gradient-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Questions Today</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white"><span data-bind="dailyStats.questionsCompleted">24</span>/<span data-bind="dailyStats.questionsTarget">30</span></p>
+                        </div>
+                        <div class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-question-circle text-primary text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full" style="width: 80%" data-bind="dailyStats.questionsProgress"></div>
+                    </div>
+                </div>
+
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Study Time</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white"><span data-bind="dailyStats.studyHours">4.5</span>h</p>
+                        </div>
+                        <div class="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-clock text-secondary text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-success mt-2">+0.5h from yesterday</p>
+                </div>
+
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Current Streak</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white"><span data-bind="userStats.currentStreak">12</span> days</p>
+                        </div>
+                        <div class="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-fire text-accent text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Best: <span data-bind="userStats.bestStreak">18</span> days</p>
+                </div>
+
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Attendance</p>
+                            <p class="text-2xl font-bold text-success"><span data-bind="attendanceStats.percentage">94</span>%</p>
+                        </div>
+                        <div class="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-calendar-check text-success text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400"><span data-bind="attendanceStats.present">47</span>/<span data-bind="attendanceStats.total">50</span> days</p>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: QuickStats -->
+
+            <!-- @COMPONENT: SubjectProgress [subject-wise progress cards] -->
+            <div class="space-y-4" data-mock="true">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Subject Progress</h2>
+                    <button class="text-primary text-sm font-medium" data-event="click:viewAllSubjects" data-implementation="Should expand all subject cards">View All</button>
+                </div>
+
+                <!-- @MAP: subjects.map(subject => ( -->
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between cursor-pointer" data-event="click:toggleSubjectDetails" data-implementation="Should expand/collapse subject details">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">📐</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Mathematics</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"><span data-bind="subjects.math.questionsToday">8</span> questions today</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Progress</p>
+                            <p class="text-lg font-bold text-blue-600"><span data-bind="subjects.math.completion">76</span>%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 76%" data-bind="subjects.math.progressWidth"></div>
+                    </div>
+                </div>
+
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between cursor-pointer" data-event="click:toggleSubjectDetails" data-implementation="Should expand/collapse subject details">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">⚛️</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Physics</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"><span data-bind="subjects.physics.questionsToday">12</span> questions today</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Progress</p>
+                            <p class="text-lg font-bold text-red-600"><span data-bind="subjects.physics.completion">68</span>%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: 68%" data-bind="subjects.physics.progressWidth"></div>
+                    </div>
+                </div>
+
+                <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between cursor-pointer" data-event="click:toggleSubjectDetails" data-implementation="Should expand/collapse subject details">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">🧪</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Chemistry</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"><span data-bind="subjects.chemistry.questionsToday">4</span> questions today</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Progress</p>
+                            <p class="text-lg font-bold text-green-600"><span data-bind="subjects.chemistry.completion">82</span>%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 82%" data-bind="subjects.chemistry.progressWidth"></div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+            <!-- @END_COMPONENT: SubjectProgress -->
+
+            <!-- @COMPONENT: TodaysGoals [daily goals overview] -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5" data-mock="true">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Today's Goals</h2>
+                    <button class="text-primary text-sm font-medium" data-event="click:addGoal" data-implementation="Should open add goal modal">+ Add Goal</button>
+                </div>
+                
+                <!-- @MAP: todaysGoals.map(goal => ( -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl" data-mock="true">
+                        <button class="w-5 h-5 rounded-full border-2 border-success bg-success flex items-center justify-center" data-event="click:toggleGoal" data-implementation="Should mark goal as complete/incomplete">
+                            <i class="fas fa-check text-white text-xs"></i>
+                        </button>
+                        <span class="text-gray-900 dark:text-white line-through opacity-75">Complete 30 Physics questions</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl" data-mock="true">
+                        <button class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" data-event="click:toggleGoal" data-implementation="Should mark goal as complete/incomplete"></button>
+                        <span class="text-gray-900 dark:text-white">Review Organic Chemistry notes</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl" data-mock="true">
+                        <button class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" data-event="click:toggleGoal" data-implementation="Should mark goal as complete/incomplete"></button>
+                        <span class="text-gray-900 dark:text-white">Sleep before 11 PM</span>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+            <!-- @END_COMPONENT: TodaysGoals -->
+
+            <!-- @COMPONENT: WeeklyOverview [weekly progress chart] -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5" data-mock="true">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">This Week's Activity</h2>
+                <div class="grid grid-cols-7 gap-2">
+                    <!-- @MAP: weekDays.map(day => ( -->
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Mon</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-primary rounded-lg" style="height: 75%" data-bind="weeklyActivity.monday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.monday.hours">6.0</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Tue</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-primary rounded-lg" style="height: 60%" data-bind="weeklyActivity.tuesday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.tuesday.hours">4.8</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Wed</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-primary rounded-lg" style="height: 90%" data-bind="weeklyActivity.wednesday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.wednesday.hours">7.2</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Thu</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-primary rounded-lg" style="height: 45%" data-bind="weeklyActivity.thursday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.thursday.hours">3.6</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Fri</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-secondary rounded-lg" style="height: 85%" data-bind="weeklyActivity.friday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.friday.hours">6.8</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sat</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-accent rounded-lg" style="height: 55%" data-bind="weeklyActivity.saturday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.saturday.hours">4.4</span>h</p>
+                    </div>
+                    <div class="text-center" data-mock="true">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sun</p>
+                        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-gray-400 rounded-lg" style="height: 20%" data-bind="weeklyActivity.sunday.height"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1"><span data-bind="weeklyActivity.sunday.hours">1.6</span>h</p>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: WeeklyOverview -->
+
+        </div>
+        <!-- @END_COMPONENT: DashboardView -->
+
+        <!-- @COMPONENT: DailyLogView [hidden by default, shown when navigating to daily log] -->
+        <div id="daily-log-view" class="hidden p-4 lg:p-6 space-y-6 animate-fade-in" data-mock="true">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Daily Log</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Track your daily progress</p>
+                </div>
+                <button class="px-4 py-2 bg-primary text-white rounded-xl font-medium" data-event="click:saveAllProgress" data-implementation="Should save all current form data to localStorage">
+                    Save Progress
+                </button>
+            </div>
+
+            <!-- Goal Setting Section -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🎯 Set Today's Goals</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Text Goal</label>
+                        <div class="flex space-x-2">
+                            <input type="text" placeholder="Enter your goal..." class="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="goalInput.text" data-mock="true">
+                            <button class="px-6 py-3 bg-primary text-white rounded-xl" data-event="click:addTextGoal" data-implementation="Should add text goal to today's goals list">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Topic Goal</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="goalInput.subject" data-mock="true">
+                                <option>Select Subject</option>
+                                <option>Mathematics</option>
+                                <option>Physics</option>
+                                <option>Chemistry</option>
+                            </select>
+                            <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="goalInput.chapter" data-mock="true">
+                                <option>Select Chapter</option>
+                                <option>Calculus</option>
+                                <option>Algebra</option>
+                                <option>Trigonometry</option>
+                            </select>
+                            <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="goalInput.topic" data-mock="true">
+                                <option>Select Topic</option>
+                                <option>Limits</option>
+                                <option>Derivatives</option>
+                                <option>Integration</option>
+                            </select>
+                        </div>
+                        <button class="mt-3 w-full px-6 py-3 bg-secondary text-white rounded-xl" data-event="click:addTopicGoal" data-implementation="Should add topic-based goal to today's goals list">
+                            Add Topic Goal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sleep Tracking Section -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🛌 Sleep Tracking</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bedtime</label>
+                        <input type="time" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="sleepTracking.bedtime" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Wake Time</label>
+                        <input type="time" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="sleepTracking.wakeTime" data-mock="true">
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <p class="text-sm text-blue-700 dark:text-blue-300">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Total Sleep: <span class="font-medium" data-bind="sleepTracking.totalHours">7.5 hours</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Study Tracker Section -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📚 Study Tracker</h2>
+                
+                <!-- Subject Toggle Buttons -->
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <button class="p-4 bg-blue-500 text-white rounded-xl text-center" data-event="click:selectSubject" data-implementation="Should activate Mathematics tracking mode">
+                        <div class="text-2xl mb-1">📐</div>
+                        <div class="text-sm font-medium">Mathematics</div>
+                    </button>
+                    <button class="p-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-center" data-event="click:selectSubject" data-implementation="Should activate Physics tracking mode">
+                        <div class="text-2xl mb-1">⚛️</div>
+                        <div class="text-sm font-medium">Physics</div>
+                    </button>
+                    <button class="p-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-center" data-event="click:selectSubject" data-implementation="Should activate Chemistry tracking mode">
+                        <div class="text-2xl mb-1">🧪</div>
+                        <div class="text-sm font-medium">Chemistry</div>
+                    </button>
+                </div>
+
+                <!-- Active Subject Details (Mathematics selected) -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Question Target for Mathematics</label>
+                        <input type="number" placeholder="Enter target number" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="studyTracker.mathematics.target" data-mock="true">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Questions Practiced</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="studyTracker.selectedChapter" data-mock="true">
+                                <option>Select Chapter</option>
+                                <option>Calculus</option>
+                                <option>Algebra</option>
+                                <option>Coordinate Geometry</option>
+                            </select>
+                            <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="studyTracker.selectedTopic" data-mock="true">
+                                <option>Select Topic</option>
+                                <option>Limits</option>
+                                <option>Derivatives</option>
+                                <option>Integration</option>
+                            </select>
+                            <input type="number" placeholder="Count" class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="studyTracker.questionCount" data-mock="true">
+                        </div>
+                        <button class="w-full px-6 py-3 bg-accent text-white rounded-xl" data-event="click:addQuestionSet" data-implementation="Should add question count to the selected topic">
+                            Add Questions
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lecture Attendance Section -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🎓 Lecture Attendance</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="lectureAttendance.subject" data-mock="true">
+                            <option>Select Subject</option>
+                            <option>Mathematics</option>
+                            <option>Physics</option>
+                            <option>Chemistry</option>
+                        </select>
+                        <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="lectureAttendance.chapter" data-mock="true">
+                            <option>Select Chapter</option>
+                            <option>Mechanics</option>
+                            <option>Thermodynamics</option>
+                            <option>Optics</option>
+                        </select>
+                        <select class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" data-bind="lectureAttendance.topic" data-mock="true">
+                            <option>Select Topic</option>
+                            <option>Newton's Laws</option>
+                            <option>Work & Energy</option>
+                            <option>Momentum</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Duration</label>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button class="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm" data-event="click:selectDuration" data-implementation="Should set lecture duration to 1 hour">1hr</button>
+                            <button class="px-4 py-3 bg-primary text-white rounded-xl text-sm" data-event="click:selectDuration" data-implementation="Should set lecture duration to 1hr 45min">1hr 45min</button>
+                            <button class="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm" data-event="click:selectDuration" data-implementation="Should set lecture duration to 2 hours">2hr</button>
+                            <button class="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm" data-event="click:selectDuration" data-implementation="Should open custom duration input">Custom</button>
+                        </div>
+                        <button class="w-full px-6 py-3 bg-success text-white rounded-xl" data-event="click:addLecture" data-implementation="Should log the lecture attendance">
+                            Mark Lecture Attended
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Notes Section -->
+            <div class="neumorphic bg-white dark:bg-gray-800 rounded-2xl p-5">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📝 Daily Notes</h2>
+                <textarea placeholder="Write your daily notes, reflections, or important points..." rows="4" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" data-bind="dailyNotes.content" data-mock="true"></textarea>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Notes are automatically saved as you type</p>
+            </div>
+
+        </div>
+        <!-- @END_COMPONENT: DailyLogView -->
+
+    </main>
+    <!-- @END_COMPONENT: MainContent -->
+
+    <!-- @COMPONENT: FloatingActionButton [quick access to daily log] -->
+    <button class="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-40 animate-pulse-slow" data-event="click:quickAddLog" data-implementation="Should open quick add modal or navigate to daily log">
+        <i class="fas fa-plus text-xl"></i>
+    </button>
+    <!-- @END_COMPONENT: FloatingActionButton -->
+
+    <!-- @STATE: currentView:string = 'dashboard' -->
+    <!-- @STATE: isDarkMode:boolean = false -->
+    <!-- @STATE: dailyGoals:array = [] -->
+    <!-- @STATE: studyData:object = {} -->
+
+    <script>
+        (function() {
+            // TODO: Implement theme toggle functionality
+            // TODO: Implement navigation between different views
+            // TODO: Implement local storage for persistence
+            // TODO: Implement PWA service worker registration
+            // TODO: Implement form data collection and saving
+            // TODO: Implement real-time progress calculations
+            
+            // Demo functionality for visual interactions
+            const themeToggle = document.querySelector('[data-event="click:toggleTheme"]');
+            const body = document.body;
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    body.classList.toggle('dark');
+                    const icon = this.querySelector('i');
+                    if (body.classList.contains('dark')) {
+                        icon.className = 'fas fa-sun text-lg';
+                    } else {
+                        icon.className = 'fas fa-moon text-lg';
+                    }
+                });
+            }
+
+            // Demo navigation functionality
+            const navButtons = document.querySelectorAll('[data-event^="click:navigate"]');
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.getAttribute('data-event');
+                    
+                    // Remove active state from all nav buttons
+                    navButtons.forEach(btn => {
+                        btn.classList.remove('text-primary', 'border-t-2', 'border-primary', 'bg-primary/10');
+                        btn.classList.add('text-gray-500', 'dark:text-gray-400');
+                    });
+                    
+                    // Add active state to clicked button
+                    this.classList.remove('text-gray-500', 'dark:text-gray-400');
+                    this.classList.add('text-primary');
+                    
+                    // Mobile nav styling
+                    if (window.innerWidth < 1024) {
+                        this.classList.add('border-t-2', 'border-primary');
+                    } else {
+                        this.classList.add('bg-primary/10');
+                    }
+                    
+                    // Show/hide appropriate view
+                    const dashboardView = document.getElementById('dashboard-view');
+                    const dailyLogView = document.getElementById('daily-log-view');
+                    
+                    if (action.includes('DailyLog')) {
+                        dashboardView.classList.add('hidden');
+                        dailyLogView.classList.remove('hidden');
+                        document.querySelector('header h1').textContent = 'Daily Log';
+                    } else {
+                        dashboardView.classList.remove('hidden');
+                        dailyLogView.classList.add('hidden');
+                        document.querySelector('header h1').textContent = 'Dashboard';
+                    }
+                });
+            });
+
+            // Demo subject selection
+            const subjectButtons = document.querySelectorAll('[data-event="click:selectSubject"]');
+            subjectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    subjectButtons.forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    this.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    this.classList.add('bg-blue-500', 'text-white');
+                });
+            });
+
+            // Demo duration selection
+            const durationButtons = document.querySelectorAll('[data-event="click:selectDuration"]');
+            durationButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    durationButtons.forEach(btn => {
+                        btn.classList.remove('bg-primary', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    this.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    this.classList.add('bg-primary', 'text-white');
+                });
+            });
+
+            // Initialize app
+            console.log('JEE Pulse PWA initialized');
+        })();
+    </script>
+
+</body>
+</html>
