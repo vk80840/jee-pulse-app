@@ -1,25 +1,30 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, BookOpen, Award, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, ChevronRight, BookOpen, CheckCircle2, Clock } from "lucide-react";
 import { StorageManager, SYLLABUS_STRUCTURE } from "@/lib/storage";
-import { TopicProgress } from "@/lib/data-types";
+
+interface TopicProgress {
+  subject: string;
+  chapter: string;
+  topic: string;
+  questionsCompleted: number;
+  lecturesAttended: number;
+  goalsCompleted: number;
+}
 
 export default function SyllabusPage() {
-  const [syllabusProgress, setSyllabusProgress] = useState<Record<string, TopicProgress>>(
-    StorageManager.getSyllabusProgress()
-  );
-  const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set(["Mathematics"]));
+  const [syllabusProgress, setSyllabusProgress] = useState(StorageManager.getSyllabusProgress());
+  const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set(['Mathematics']));
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  const [expandedSubChapters, setExpandedSubChapters] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSyllabusProgress(StorageManager.getSyllabusProgress());
-    }, 5000);
-
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,6 +48,16 @@ export default function SyllabusPage() {
     setExpandedChapters(newExpanded);
   };
 
+  const toggleSubChapter = (subChapterKey: string) => {
+    const newExpanded = new Set(expandedSubChapters);
+    if (newExpanded.has(subChapterKey)) {
+      newExpanded.delete(subChapterKey);
+    } else {
+      newExpanded.add(subChapterKey);
+    }
+    setExpandedSubChapters(newExpanded);
+  };
+
   const getTopicProgress = (subject: string, chapter: string, topic: string): TopicProgress => {
     const key = `${subject}-${chapter}-${topic}`;
     return syllabusProgress[key] || {
@@ -55,13 +70,44 @@ export default function SyllabusPage() {
     };
   };
 
+  const getTopicsFromStructure = (subject: string, chapter: string, subChapter?: string): string[] => {
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE];
+    
+    if (subject === 'Chemistry') {
+      const subSubject = (subjectData as any)?.[chapter];
+      if (subChapter && subSubject) {
+        return subSubject[subChapter] || [];
+      } else if (subSubject) {
+        return Object.keys(subSubject);
+      }
+    } else {
+      return (subjectData as any)?.[chapter] || [];
+    }
+    
+    return [];
+  };
+
   const getChapterProgress = (subject: string, chapter: string) => {
-    const topics = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE]?.[chapter] || [];
+    let topics: string[] = [];
     let totalQuestions = 0;
     let totalLectures = 0;
     let completedTopics = 0;
+    
+    if (subject === 'Chemistry') {
+      // For Chemistry, get all topics from all sub-chapters
+      const subSubject = (SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE] as any)?.[chapter];
+      if (subSubject) {
+        Object.values(subSubject).forEach((topicList: any) => {
+          if (Array.isArray(topicList)) {
+            topics = [...topics, ...topicList];
+          }
+        });
+      }
+    } else {
+      topics = getTopicsFromStructure(subject, chapter);
+    }
 
-    topics.forEach(topic => {
+    topics.forEach((topic: string) => {
       const progress = getTopicProgress(subject, chapter, topic);
       totalQuestions += progress.questionsCompleted;
       totalLectures += progress.lecturesAttended;
@@ -80,7 +126,8 @@ export default function SyllabusPage() {
   };
 
   const getSubjectProgress = (subject: string) => {
-    const chapters = Object.keys(SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE] || {});
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE];
+    const chapters = Object.keys(subjectData as any || {});
     let totalQuestions = 0;
     let totalLectures = 0;
     let completedTopics = 0;
@@ -103,207 +150,279 @@ export default function SyllabusPage() {
     };
   };
 
-  const getSubjectColor = (subject: string) => {
-    switch (subject) {
-      case "Mathematics": return "blue";
-      case "Physics": return "red";
-      case "Chemistry": return "green";
-      default: return "gray";
-    }
+  const updateTopicProgress = (subject: string, chapter: string, topic: string, field: 'questionsCompleted' | 'lecturesAttended', increment: number) => {
+    const current = getTopicProgress(subject, chapter, topic);
+    const newValue = Math.max(0, current[field] + increment);
+    
+    StorageManager.updateSyllabusProgress(subject, chapter, topic, {
+      [field]: newValue
+    });
+    setSyllabusProgress(StorageManager.getSyllabusProgress());
   };
 
-  const getSubjectEmoji = (subject: string) => {
-    switch (subject) {
-      case "Mathematics": return "📐";
-      case "Physics": return "⚛️";
-      case "Chemistry": return "🧪";
-      default: return "📚";
-    }
+  const renderTopics = (subject: string, chapter: string, topics: string[], subChapter?: string) => {
+    return topics.map((topic: string) => {
+      const progress = getTopicProgress(subject, chapter, topic);
+      const isCompleted = progress.questionsCompleted > 0 || progress.lecturesAttended > 0;
+      const progressPercentage = Math.min(100, (progress.questionsCompleted * 10) + (progress.lecturesAttended * 20));
+
+      return (
+        <div key={topic} className="ml-6 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              {isCompleted ? (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              ) : (
+                <Clock className="h-4 w-4 text-gray-400" />
+              )}
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{topic}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Badge variant={isCompleted ? "default" : "secondary"} className="text-xs">
+                {progress.questionsCompleted}Q / {progress.lecturesAttended}L
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="mb-2">
+            <Progress 
+              value={progressPercentage} 
+              className="h-2"
+              style={{
+                background: 'rgb(156, 163, 175)',
+              }}
+            />
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => updateTopicProgress(subject, chapter, topic, 'questionsCompleted', 1)}
+              data-testid={`add-question-${topic}`}
+            >
+              +1Q
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => updateTopicProgress(subject, chapter, topic, 'lecturesAttended', 1)}
+              data-testid={`add-lecture-${topic}`}
+            >
+              +1L
+            </Button>
+            {progress.questionsCompleted > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => updateTopicProgress(subject, chapter, topic, 'questionsCompleted', -1)}
+                data-testid={`remove-question-${topic}`}
+              >
+                -1Q
+              </Button>
+            )}
+            {progress.lecturesAttended > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => updateTopicProgress(subject, chapter, topic, 'lecturesAttended', -1)}
+                data-testid={`remove-lecture-${topic}`}
+              >
+                -1L
+              </Button>
+            )}
+          </div>
+        </div>
+      );
+    });
+  };
+
+  const renderChemistrySubject = (subject: string) => {
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE] as any;
+    const subSubjects = Object.keys(subjectData || {});
+
+    return subSubjects.map(subSubject => {
+      const subSubjectKey = `${subject}-${subSubject}`;
+      const isExpanded = expandedChapters.has(subSubjectKey);
+      const chapters = Object.keys(subjectData[subSubject] || {});
+      const progress = getChapterProgress(subject, subSubject);
+
+      return (
+        <div key={subSubject} className="space-y-2">
+          <div
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            onClick={() => toggleChapter(subSubjectKey)}
+            data-testid={`toggle-subsubject-${subSubject}`}
+          >
+            <div className="flex items-center space-x-3">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-500" />
+              )}
+              <BookOpen className="h-4 w-4 text-blue-500" />
+              <span className="font-medium text-gray-900 dark:text-white">{subSubject}</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Badge variant="secondary" className="text-xs">
+                {progress.completedTopics}/{progress.totalTopics} topics
+              </Badge>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {progress.completionPercentage}%
+              </span>
+            </div>
+          </div>
+
+          {isExpanded && (
+            <div className="space-y-3 ml-4">
+              {chapters.map(chapter => {
+                const chapterKey = `${subject}-${subSubject}-${chapter}`;
+                const isChapterExpanded = expandedSubChapters.has(chapterKey);
+                const topics = subjectData[subSubject][chapter] || [];
+
+                return (
+                  <div key={chapter} className="space-y-2">
+                    <div
+                      className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                      onClick={() => toggleSubChapter(chapterKey)}
+                      data-testid={`toggle-chapter-${chapter}`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        {isChapterExpanded ? (
+                          <ChevronDown className="h-3 w-3 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 text-gray-400" />
+                        )}
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{chapter}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {topics.length} topics
+                      </Badge>
+                    </div>
+
+                    {isChapterExpanded && (
+                      <div className="space-y-2">
+                        {renderTopics(subject, chapter, topics, subSubject)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
+  const renderRegularSubject = (subject: string) => {
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE] as any;
+    const chapters = Object.keys(subjectData || {});
+
+    return chapters.map(chapter => {
+      const chapterKey = `${subject}-${chapter}`;
+      const isExpanded = expandedChapters.has(chapterKey);
+      const topics = getTopicsFromStructure(subject, chapter);
+      const progress = getChapterProgress(subject, chapter);
+
+      return (
+        <div key={chapter} className="space-y-2">
+          <div
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            onClick={() => toggleChapter(chapterKey)}
+            data-testid={`toggle-chapter-${chapter}`}
+          >
+            <div className="flex items-center space-x-3">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-500" />
+              )}
+              <BookOpen className="h-4 w-4 text-blue-500" />
+              <span className="font-medium text-gray-900 dark:text-white">{chapter}</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Badge variant="secondary" className="text-xs">
+                {progress.completedTopics}/{progress.totalTopics} topics
+              </Badge>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {progress.completionPercentage}%
+              </span>
+            </div>
+          </div>
+
+          {isExpanded && (
+            <div className="space-y-2">
+              {renderTopics(subject, chapter, topics)}
+            </div>
+          )}
+        </div>
+      );
+    });
   };
 
   return (
     <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Syllabus Progress</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track your topic-wise progress</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Syllabus Tracker</h1>
+          <p className="text-gray-600 dark:text-gray-400">Track your progress across all subjects</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setExpandedSubjects(expandedSubjects.size === 3 ? new Set() : new Set(Object.keys(SYLLABUS_STRUCTURE)))}
-          data-testid="toggle-all-subjects"
-        >
-          {expandedSubjects.size === 3 ? "Collapse All" : "Expand All"}
-        </Button>
       </div>
 
-      {/* Overall Progress Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="space-y-6">
         {Object.keys(SYLLABUS_STRUCTURE).map(subject => {
+          const isExpanded = expandedSubjects.has(subject);
           const progress = getSubjectProgress(subject);
-          const color = getSubjectColor(subject);
           
-          return (
-            <Card key={subject} className="neumorphic">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className={`w-10 h-10 bg-${color}-500/20 rounded-lg flex items-center justify-center`}>
-                    <span className="text-xl">{getSubjectEmoji(subject)}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{subject}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {progress.completedTopics}/{progress.totalTopics} topics
-                    </p>
-                  </div>
-                </div>
-                <Progress value={progress.completionPercentage} className="h-2 mb-2" />
-                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                  <span>{progress.totalQuestions} questions</span>
-                  <span>{Math.round(progress.totalLectures / 60 * 10) / 10}h lectures</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+          const getSubjectColor = (subj: string) => {
+            switch(subj) {
+              case 'Mathematics': return 'from-blue-500 to-purple-600';
+              case 'Physics': return 'from-green-500 to-blue-600';
+              case 'Chemistry': return 'from-red-500 to-pink-600';
+              default: return 'from-gray-500 to-gray-600';
+            }
+          };
 
-      {/* Detailed Subject Breakdown */}
-      <div className="space-y-4">
-        {Object.entries(SYLLABUS_STRUCTURE).map(([subject, chapters]) => {
-          const subjectProgress = getSubjectProgress(subject);
-          const color = getSubjectColor(subject);
-          
           return (
-            <Card key={subject} className="neumorphic">
-              <Collapsible
-                open={expandedSubjects.has(subject)}
-                onOpenChange={() => toggleSubject(subject)}
+            <Card key={subject} className="neumorphic overflow-hidden">
+              <CardHeader
+                className={`bg-gradient-to-r ${getSubjectColor(subject)} text-white cursor-pointer hover:opacity-90 transition-opacity`}
+                onClick={() => toggleSubject(subject)}
+                data-testid={`toggle-subject-${subject}`}
               >
-                <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-12 h-12 bg-${color}-500/20 rounded-xl flex items-center justify-center`}>
-                          <span className="text-2xl">{getSubjectEmoji(subject)}</span>
-                        </div>
-                        <div>
-                          <CardTitle className="text-xl">{subject}</CardTitle>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {Object.keys(chapters).length} chapters • {subjectProgress.completedTopics}/{subjectProgress.totalTopics} topics completed
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <p className={`text-lg font-bold text-${color}-600`}>{subjectProgress.completionPercentage}%</p>
-                          <p className="text-sm text-gray-500">Complete</p>
-                        </div>
-                        {expandedSubjects.has(subject) ? 
-                          <ChevronDown className="h-5 w-5" /> : 
-                          <ChevronRight className="h-5 w-5" />
-                        }
-                      </div>
-                    </div>
-                  </CardHeader>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <Progress value={subjectProgress.completionPercentage} className="mb-6" />
-                    
-                    <div className="space-y-4">
-                      {Object.entries(chapters).map(([chapter, topics]) => {
-                        const chapterProgress = getChapterProgress(subject, chapter);
-                        const chapterKey = `${subject}-${chapter}`;
-                        
-                        return (
-                          <div key={chapter} className="border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <Collapsible
-                              open={expandedChapters.has(chapterKey)}
-                              onOpenChange={() => toggleChapter(chapterKey)}
-                            >
-                              <CollapsibleTrigger asChild>
-                                <div className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <h4 className="font-medium text-gray-900 dark:text-white">{chapter}</h4>
-                                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        {chapterProgress.completedTopics}/{chapterProgress.totalTopics} topics • 
-                                        {chapterProgress.totalQuestions} questions • 
-                                        {Math.round(chapterProgress.totalLectures / 60 * 10) / 10}h lectures
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                      <Badge variant="outline">
-                                        {chapterProgress.completionPercentage}%
-                                      </Badge>
-                                      {expandedChapters.has(chapterKey) ? 
-                                        <ChevronDown className="h-4 w-4" /> : 
-                                        <ChevronRight className="h-4 w-4" />
-                                      }
-                                    </div>
-                                  </div>
-                                  <Progress value={chapterProgress.completionPercentage} className="mt-2 h-1" />
-                                </div>
-                              </CollapsibleTrigger>
-                              
-                              <CollapsibleContent>
-                                <div className="px-4 pb-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {topics.map(topic => {
-                                      const topicProgress = getTopicProgress(subject, chapter, topic);
-                                      const hasProgress = topicProgress.questionsCompleted > 0 || topicProgress.lecturesAttended > 0;
-                                      
-                                      return (
-                                        <div
-                                          key={topic}
-                                          className={`p-3 rounded-lg border transition-colors ${
-                                            hasProgress 
-                                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-                                              : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                                          }`}
-                                          data-testid={`topic-${subject.toLowerCase()}-${chapter.toLowerCase().replace(/\s+/g, '-')}-${topic.toLowerCase().replace(/\s+/g, '-')}`}
-                                        >
-                                          <div className="flex items-start justify-between mb-2">
-                                            <h5 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2">
-                                              {topic}
-                                            </h5>
-                                            {hasProgress && (
-                                              <Badge variant="secondary" className="ml-2 text-xs">
-                                                ✓
-                                              </Badge>
-                                            )}
-                                          </div>
-                                          
-                                          <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                                            <div className="flex items-center space-x-2">
-                                              <BookOpen className="h-3 w-3" />
-                                              <span>{topicProgress.questionsCompleted} questions</span>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                              <Clock className="h-3 w-3" />
-                                              <span>{topicProgress.lecturesAttended} lectures</span>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                              <Award className="h-3 w-3" />
-                                              <span>{topicProgress.goalsCompleted} goals</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {isExpanded ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5" />
+                    )}
+                    <CardTitle>{subject}</CardTitle>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Badge variant="secondary" className="bg-white/20 text-white">
+                      {progress.completedTopics}/{progress.totalTopics} topics
+                    </Badge>
+                    <span className="text-lg font-bold">{progress.completionPercentage}%</span>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <Progress 
+                    value={progress.completionPercentage} 
+                    className="h-3 bg-white/20"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                    }}
+                  />
+                </div>
+              </CardHeader>
+
+              {isExpanded && (
+                <CardContent className="p-6 space-y-4">
+                  {subject === 'Chemistry' ? renderChemistrySubject(subject) : renderRegularSubject(subject)}
+                </CardContent>
+              )}
             </Card>
           );
         })}

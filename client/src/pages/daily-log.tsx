@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { StorageManager, SYLLABUS_STRUCTURE } from "@/lib/storage";
 import { DailyLogData, Goal } from "@/lib/data-types";
-import { Plus, Target, Moon, BookOpen, GraduationCap, StickyNote, Save } from "lucide-react";
+import { Plus, Target, Moon, BookOpen, GraduationCap, StickyNote, Save, Settings, Goal as GoalIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function DailyLog() {
   const { toast } = useToast();
@@ -20,6 +21,10 @@ export default function DailyLog() {
   const [topicGoal, setTopicGoal] = useState({ subject: "", chapter: "", topic: "" });
   const [sleepData, setSleepData] = useState(todayLog.sleep);
   const [studyTarget, setStudyTarget] = useState<string>("");
+  const [targetFormData, setTargetFormData] = useState({ subject: "", questions: "", time: "" });
+  const [goalFormData, setGoalFormData] = useState({ text: "", subject: "", chapter: "", topic: "" });
+  const [showTargetDialog, setShowTargetDialog] = useState(false);
+  const [showGoalDialog, setShowGoalDialog] = useState(false);
   const [questionSession, setQuestionSession] = useState({ chapter: "", topic: "", count: "" });
   const [lecture, setLecture] = useState({ subject: "", chapter: "", topic: "", duration: "105" });
   const [notes, setNotes] = useState(todayLog.notes);
@@ -124,12 +129,71 @@ export default function DailyLog() {
     toast({ description: "Notes saved!" });
   };
 
+  const handleSetTarget = () => {
+    if (!targetFormData.subject || !targetFormData.questions) {
+      toast({ description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+    
+    const target = parseInt(targetFormData.questions);
+    if (isNaN(target) || target <= 0) {
+      toast({ description: "Please enter a valid number of questions", variant: "destructive" });
+      return;
+    }
+    
+    StorageManager.updateStudyTarget(targetFormData.subject, target);
+    setTodayLog(StorageManager.getTodayLog());
+    setTargetFormData({ subject: "", questions: "", time: "" });
+    setShowTargetDialog(false);
+    toast({ description: `Target set: ${target} questions for ${targetFormData.subject}` });
+  };
+
+  const handleSetGoal = () => {
+    if (!goalFormData.text.trim()) {
+      toast({ description: "Please enter a goal description", variant: "destructive" });
+      return;
+    }
+    
+    const goal: Goal = {
+      id: Date.now().toString(),
+      text: goalFormData.text,
+      completed: false,
+      subject: goalFormData.subject || undefined,
+      chapter: goalFormData.chapter || undefined,
+      topic: goalFormData.topic || undefined
+    };
+    
+    StorageManager.addGoal(goal);
+    setTodayLog(StorageManager.getTodayLog());
+    setGoalFormData({ text: "", subject: "", chapter: "", topic: "" });
+    setShowGoalDialog(false);
+    toast({ description: "Goal added successfully!" });
+  };
+
   const subjects = Object.keys(SYLLABUS_STRUCTURE);
-  const activeSubjectChapters = SYLLABUS_STRUCTURE[activeSubject as keyof typeof SYLLABUS_STRUCTURE] || {};
-  const activeChapterTopics = questionSession.chapter ? activeSubjectChapters[questionSession.chapter] || [] : [];
   
-  const lectureChapters = lecture.subject ? SYLLABUS_STRUCTURE[lecture.subject as keyof typeof SYLLABUS_STRUCTURE] || {} : {};
-  const lectureTopics = lecture.chapter ? lectureChapters[lecture.chapter] || [] : [];
+  const getSubjectChapters = (subject: string) => {
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE];
+    if (subject === 'Chemistry') {
+      return Object.keys(subjectData as any || {});
+    }
+    return Object.keys(subjectData as any || {});
+  };
+
+  const getChapterTopics = (subject: string, chapter: string) => {
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE];
+    if (subject === 'Chemistry') {
+      const subSubject = (subjectData as any)?.[chapter];
+      return Object.keys(subSubject || {});
+    }
+    return (subjectData as any)?.[chapter] || [];
+  };
+
+  const activeSubjectChapters = getSubjectChapters(activeSubject);
+  const activeChapterTopics = questionSession.chapter ? getChapterTopics(activeSubject, questionSession.chapter) : [];
+  
+  const lectureChapters = lecture.subject ? getSubjectChapters(lecture.subject) : [];
+  const lectureTopics = lecture.chapter ? getChapterTopics(lecture.subject, lecture.chapter) : [];
 
   return (
     <div className="p-4 lg:p-6 space-y-6 animate-fade-in">

@@ -27,18 +27,13 @@ export default function Navigation() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 lg:hidden">
         <div className="grid grid-cols-5 h-16">
           {navItems.map(({ path, icon: Icon, label }) => (
-            <Link key={path} href={path}>
-              <a 
-                className={`flex flex-col items-center justify-center space-y-1 ${
-                  isActive(path) 
-                    ? "text-primary border-t-2 border-primary" 
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
-                data-testid={`nav-mobile-${label.toLowerCase()}`}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{label}</span>
-              </a>
+            <Link key={path} href={path} className={`flex flex-col items-center justify-center space-y-1 ${
+              isActive(path) 
+                ? "text-primary border-t-2 border-primary" 
+                : "text-gray-500 dark:text-gray-400"
+            }`} data-testid={`nav-mobile-${label.toLowerCase()}`}>
+              <Icon className="h-5 w-5" />
+              <span className="text-xs font-medium">{label}</span>
             </Link>
           ))}
         </div>
@@ -53,18 +48,13 @@ export default function Navigation() {
         
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map(({ path, icon: Icon, label }) => (
-            <Link key={path} href={path}>
-              <a 
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive(path)
-                    ? "bg-primary/10 text-primary"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-                data-testid={`nav-desktop-${label.toLowerCase()}`}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{label === "Home" ? "Dashboard" : label === "Log" ? "Daily Log" : label === "Progress" ? "Analytics" : label}</span>
-              </a>
+            <Link key={path} href={path} className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium ${
+              isActive(path)
+                ? "bg-primary/10 text-primary"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`} data-testid={`nav-desktop-${label.toLowerCase()}`}>
+              <Icon className="h-5 w-5" />
+              <span>{label === "Home" ? "Dashboard" : label === "Log" ? "Daily Log" : label === "Progress" ? "Analytics" : label}</span>
             </Link>
           ))}
         </nav>

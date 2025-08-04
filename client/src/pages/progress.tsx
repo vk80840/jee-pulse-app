@@ -24,6 +24,24 @@ export default function ProgressPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const toggleAttendance = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const currentAttendance = attendanceData.attendanceMap.get(dateStr);
+    
+    let newStatus: 'present' | 'absent' | 'holiday';
+    if (!currentAttendance || currentAttendance === 'absent') {
+      newStatus = 'present';
+    } else if (currentAttendance === 'present') {
+      newStatus = 'absent';
+    } else {
+      newStatus = 'present';
+    }
+    
+    StorageManager.updateAttendance(dateStr, newStatus);
+    setLifetimeData(StorageManager.getLifetimeProgress());
+    setUserStats(StorageManager.getUserStats());
+  };
+
   const getAttendanceData = () => {
     const attendanceMap = new Map<string, 'present' | 'absent' | 'holiday'>();
     let presentDays = 0;
@@ -31,7 +49,7 @@ export default function ProgressPage() {
     let totalDays = 0;
 
     lifetimeData.forEach(log => {
-      if (log.schoolAttendance && log.schoolAttendance !== '') {
+      if (log.schoolAttendance) {
         attendanceMap.set(log.date, log.schoolAttendance as 'present' | 'absent' | 'holiday');
         if (log.schoolAttendance === 'present') presentDays++;
         if (log.schoolAttendance === 'absent') absentDays++;
@@ -53,6 +71,8 @@ export default function ProgressPage() {
 
     return { attendanceMap, presentDays, absentDays, totalDays };
   };
+
+  const attendanceData = getAttendanceData();
 
   const getSubjectWiseStats = () => {
     const subjectStats = {
@@ -270,11 +290,11 @@ export default function ProgressPage() {
           <div className="flex space-x-4 text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Present ({presentDays})</span>
+              <span>Present ({attendanceData.presentDays})</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>Absent ({absentDays})</span>
+              <span>Absent ({attendanceData.absentDays})</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-300 rounded"></div>
@@ -286,12 +306,17 @@ export default function ProgressPage() {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={setSelectedDate}
-            className="rounded-md border"
+            onSelect={(date) => {
+              setSelectedDate(date);
+              if (date) {
+                toggleAttendance(date);
+              }
+            }}
+            className="rounded-md border cursor-pointer"
             modifiers={{
-              present: (date) => attendanceMap.get(date.toISOString().split('T')[0]) === 'present',
-              absent: (date) => attendanceMap.get(date.toISOString().split('T')[0]) === 'absent',
-              holiday: (date) => attendanceMap.get(date.toISOString().split('T')[0]) === 'holiday',
+              present: (date) => attendanceData.attendanceMap.get(date.toISOString().split('T')[0]) === 'present',
+              absent: (date) => attendanceData.attendanceMap.get(date.toISOString().split('T')[0]) === 'absent',
+              holiday: (date) => attendanceData.attendanceMap.get(date.toISOString().split('T')[0]) === 'holiday',
             }}
             modifiersClassNames={{
               present: 'bg-green-500 text-white hover:bg-green-600',
@@ -303,10 +328,13 @@ export default function ProgressPage() {
           
           <div className="mt-4 text-center">
             <p className="text-lg font-semibold">
-              Attendance Rate: {totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0}%
+              Attendance Rate: {attendanceData.totalDays > 0 ? Math.round((attendanceData.presentDays / attendanceData.totalDays) * 100) : 0}%
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {presentDays} present out of {totalDays} school days
+              {attendanceData.presentDays} present out of {attendanceData.totalDays} school days
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Click on dates to toggle attendance status
             </p>
           </div>
         </CardContent>
@@ -328,7 +356,9 @@ export default function ProgressPage() {
                   <span className="text-sm font-medium">Avg. Study Time</span>
                   <span className="text-lg font-bold text-primary">{avgStats.avgStudyTime}h/day</span>
                 </div>
-                <Progress value={Math.min((avgStats.avgStudyTime / 8) * 100, 100)} />
+                <div className="progress-grey-green">
+                  <Progress value={Math.min((avgStats.avgStudyTime / 8) * 100, 100)} />
+                </div>
               </div>
               
               <div>
@@ -336,7 +366,9 @@ export default function ProgressPage() {
                   <span className="text-sm font-medium">Avg. Questions</span>
                   <span className="text-lg font-bold text-secondary">{avgStats.avgQuestions}/day</span>
                 </div>
-                <Progress value={Math.min((avgStats.avgQuestions / 50) * 100, 100)} />
+                <div className="progress-grey-green">
+                  <Progress value={Math.min((avgStats.avgQuestions / 50) * 100, 100)} />
+                </div>
               </div>
             </div>
             

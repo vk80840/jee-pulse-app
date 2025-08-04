@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Clock, Flame, Calendar, MessageCircleQuestion, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle, Clock, Flame, Calendar, MessageCircleQuestion, ChevronDown, ChevronUp, School, Check, X } from "lucide-react";
 import { StorageManager, SYLLABUS_STRUCTURE } from "@/lib/storage";
 import { DailyLogData, UserStats } from "@/lib/data-types";
 
@@ -30,12 +30,35 @@ export default function Dashboard() {
     }
   };
 
+  const toggleSchoolAttendance = (status: 'present' | 'absent') => {
+    const today = new Date().toISOString().split('T')[0];
+    StorageManager.updateAttendance(today, status);
+    setTodayLog(StorageManager.getTodayLog());
+    setWeeklyActivity(StorageManager.getWeeklyActivity());
+  };
+
   const getSubjectProgress = (subject: string) => {
     const syllabusData = StorageManager.getSyllabusProgress();
-    const subjectTopics = Object.keys(SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE] || {})
-      .flatMap(chapter => 
-        SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE]?.[chapter] || []
-      );
+    const subjectData = SYLLABUS_STRUCTURE[subject as keyof typeof SYLLABUS_STRUCTURE];
+    
+    let subjectTopics: string[] = [];
+    if (subject === 'Chemistry') {
+      // Chemistry has 3 sub-subjects
+      Object.values(subjectData as any || {}).forEach((subSubject: any) => {
+        Object.values(subSubject || {}).forEach((topics: any) => {
+          if (Array.isArray(topics)) {
+            subjectTopics = [...subjectTopics, ...topics];
+          }
+        });
+      });
+    } else {
+      // Math and Physics have direct chapter -> topics structure
+      Object.values(subjectData as any || {}).forEach((topics: any) => {
+        if (Array.isArray(topics)) {
+          subjectTopics = [...subjectTopics, ...topics];
+        }
+      });
+    }
     
     let completed = 0;
     let total = subjectTopics.length;
@@ -118,7 +141,13 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="mt-3">
-              <Progress value={questionsToday.percentage} className="h-2" />
+              <div className="progress-grey-green">
+                <Progress 
+                  value={questionsToday.percentage} 
+                  className="h-2"
+                  data-progress-bar
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -169,6 +198,45 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* School Attendance Quick Marker */}
+      <Card className="neumorphic">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
+                <School className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Today's School Attendance</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Mark your attendance for today</p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant={weeklyActivity.find(day => day.date === new Date().toISOString().split('T')[0])?.schoolAttendance === 'present' ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleSchoolAttendance('present')}
+                className="flex items-center space-x-2"
+                data-testid="mark-present"
+              >
+                <Check className="h-4 w-4" />
+                <span>Present</span>
+              </Button>
+              <Button
+                variant={weeklyActivity.find(day => day.date === new Date().toISOString().split('T')[0])?.schoolAttendance === 'absent' ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleSchoolAttendance('absent')}
+                className="flex items-center space-x-2"
+                data-testid="mark-absent"
+              >
+                <X className="h-4 w-4" />
+                <span>Absent</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Subject Progress */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -213,7 +281,13 @@ export default function Dashboard() {
               </div>
               
               <div className="mt-4">
-                <Progress value={subject.percentage} className="h-2" />
+                <div className="progress-grey-green">
+                  <Progress 
+                    value={subject.percentage} 
+                    className="h-2"
+                    data-progress-bar
+                  />
+                </div>
               </div>
 
               {expandedSubjects.has(subject.name) && (
