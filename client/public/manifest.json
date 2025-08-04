@@ -1,0 +1,66 @@
+{
+  "name": "JEE Pulse - Smart Study Tracker",
+  "short_name": "JEE Pulse",
+  "description": "A colorful, offline-first Progressive Web App for JEE exam preparation that tracks daily goals, study sessions, sleep, attendance, and syllabus progress with deep analytics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMzYjgyZjYiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik0yMiAxMWgtNGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMmg0djlaIi8+CjxwYXRoIGQ9Ik0yIDExaDRhMiAyIDAgMCAxIDIgMnY1YTIgMiAwIDAgMS0yIDJIMnYtOVoiLz4KPHN0cm9rZSBkPSJtNyAyMSA3LTdIN2MtMS4zIDAtMi42LS41LTMuNS0xLjUtLjktLjktMS41LTIuMi0xLjUtMy41VjZjMC0xLjMuNS0yLjYgMS41LTMuNVEyLjYgMi41IDUgMmgwIi8+Cjwvc3ZnPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMzYjgyZjYiLz4KPHN2ZyB4PSIxMjgiIHk9IjEyOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgo8cGF0aCBkPSJNMjIgMTFoLTRhMiAyIDAgMCAxLTItMlY0YTIgMiAwIDAgMSAyLTJoNHY5WiIvPgo8cGF0aCBkPSJNMiAxMWg0YTIgMiAwIDAgMSAyIDJ2NWEyIDIgMCAwIDEtMiAySDF2LTlaIi8+CjxzdHJva2UgZD0ibTcgMjEgNy03SDdjLTEuMyAwLTIuNi0uNS0zLjUtMS41LS45LS45LTEuNS0yLjItMS41LTMuNVY2YzAtMS4zLjUtMi42IDEuNS0zLjVRMi42IDIuNSA1IDJoMCIvPgo8L3N2Zz4KPC9zdmc+Cg==",
+      "sizes": "512x512", 
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iNTY4IiBmaWxsPSIjZjhmYWZjIi8+CjxyZWN0IHg9IjE2IiB5PSI2NCIgd2lkdGg9IjI4OCIgaGVpZ2h0PSI4MCIgcng9IjEyIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjZTVlN2ViIi8+CjxyZWN0IHg9IjE2IiB5PSIxNjAiIHdpZHRoPSIyODgiIGhlaWdodD0iMTIwIiByeD0iMTIiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNlNWU3ZWIiLz4KPHN2ZyB4PSI0MCIgeT0iODAiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjM2I4MmY2Ij4KPHN0cm9rZSBkPSJNMjIgMTFoLTRhMiAyIDAgMCAxLTItMlY0YTIgMiAwIDAgMSAyLTJoNHY5WiIvPgo8L3N2Zz4KPHR4dCB4PSI4MCIgeT0iOTQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMzc0MTUxIj5KRUUgUHVsc2U8L3R4dD4KPHR4dCB4PSI4MCIgeT0iMTEwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZiNzI4MCI+RGFzaGJvYXJkPC90eHQ+Cjx0eHQgeD0iNDAiIHk9IjIwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiMzNzQxNTEiPkRhaWx5IFByb2dyZXNzPC90eHQ+CjwvcmVjdD4KPC9zdmc+Cg==",
+      "sizes": "320x568",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Daily Log",
+      "short_name": "Log",
+      "description": "Quick access to daily logging",
+      "url": "/daily-log",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzEwYjk4MSIvPgo8cGF0aCBkPSJNMTIgNnY2bTAgMGg2bTAgMEgxMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+Cg==",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "short_name": "Stats",
+      "description": "View your analytics and progress",
+      "url": "/progress",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iI2Y1OWUwYiIvPgo8cGF0aCBkPSJNMyAxOGgxOE0zIDE4bDMtM2g0bDMgM2g0bC0yLTRoLTJsLTItMmgtM2wtMS0ySDNoNHptMCAwdjJoMTh2LTJtMCAwVjZhMiAyIDAgMCAwLTItMkg1YTIgMiAwIDAgMC0yIDJ2MTJaIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 320
+  }
+}
